@@ -1,0 +1,38 @@
+{
+  "name": "caller-sdk",
+  "version": "0.1.0",
+  "description": "Caller SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "generate": "npm run generate:env && npm run fetch:components && npm run generate:components",
+    "generate:env": "npx tsx scripts/generate-env.ts",
+    "generate:components": "npx tsx scripts/generate-components.ts",
+    "fetch:components": "npx tsx scripts/fetch-components.ts",
+    "postinstall": "npm run generate",
+    "prebuild": "npm run generate",
+    "build": "tsc && tsc-alias",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.5.0",
+    "dotenv": "^17.3.1",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.6",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "axios": "^1.13.6"
+  }
+}
