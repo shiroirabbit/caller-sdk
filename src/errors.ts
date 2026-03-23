@@ -1,4 +1,5 @@
 import { AxiosError } from 'axios';
+import { ZodError } from 'zod';
 
 export interface ErrorDetail {
   code: string;
@@ -39,6 +40,19 @@ export class CallerSDKError extends Error {
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, CallerSDKError);
     }
+  }
+
+  static fromZodError(error: ZodError, context?: string): CallerSDKError {
+    const errors: ErrorDetail[] = error.issues.map((issue) => ({
+      code: issue.code,
+      message: `${issue.path.join('.')}: ${issue.message}`,
+    }));
+
+    const summary = context
+      ? `Validation failed for ${context}`
+      : 'Validation failed';
+
+    return new CallerSDKError(summary, { errors });
   }
 
   static fromAxiosError(error: AxiosError): CallerSDKError {
