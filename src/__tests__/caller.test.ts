@@ -316,4 +316,108 @@ describe('CallerSDK', () => {
       ).rejects.not.toThrow(CallerSDKError);
     });
   });
+
+  describe('input validation', () => {
+    it('should throw CallerSDKError when required input field is missing', async () => {
+      try {
+        await sdk.call(ComponentModule.GET_EVM_DERIVATION_PATH, {} as any);
+        fail('Expected error');
+      } catch (e) {
+        const err = e as CallerSDKError;
+        expect(err).toBeInstanceOf(CallerSDKError);
+        expect(err.message).toBe('Validation failed for GET_EVM_DERIVATION_PATH input');
+        expect(err.errors.length).toBeGreaterThan(0);
+      }
+
+      expect(mockPost).not.toHaveBeenCalled();
+    });
+
+    it('should throw CallerSDKError when input field has wrong type', async () => {
+      try {
+        await sdk.call(ComponentModule.GET_EVM_DERIVATION_PATH, { addressIndex: 'not-a-number' } as any);
+        fail('Expected error');
+      } catch (e) {
+        const err = e as CallerSDKError;
+        expect(err).toBeInstanceOf(CallerSDKError);
+        expect(err.message).toContain('input');
+        expect(err.errors.some((d) => d.message.includes('addressIndex'))).toBe(true);
+      }
+
+      expect(mockPost).not.toHaveBeenCalled();
+    });
+
+    it('should throw CallerSDKError when required config field is missing', async () => {
+      try {
+        await sdk.call(
+          ComponentModule.API_CALL,
+          { headers: {} },
+          {} as any,
+        );
+        fail('Expected error');
+      } catch (e) {
+        const err = e as CallerSDKError;
+        expect(err).toBeInstanceOf(CallerSDKError);
+        expect(err.message).toBe('Validation failed for API_CALL config');
+        expect(err.errors.length).toBeGreaterThan(0);
+      }
+
+      expect(mockPost).not.toHaveBeenCalled();
+    });
+
+    it('should throw CallerSDKError when config field has invalid enum value', async () => {
+      try {
+        await sdk.call(
+          ComponentModule.API_CALL,
+          { headers: {} },
+          { apiUrl: 'https://example.com', method: 'INVALID' } as any,
+        );
+        fail('Expected error');
+      } catch (e) {
+        const err = e as CallerSDKError;
+        expect(err).toBeInstanceOf(CallerSDKError);
+        expect(err.message).toContain('config');
+        expect(err.errors.some((d) => d.message.includes('method'))).toBe(true);
+      }
+
+      expect(mockPost).not.toHaveBeenCalled();
+    });
+
+    it('should include all validation errors in errors array', async () => {
+      try {
+        await sdk.call(
+          ComponentModule.API_CALL,
+          { headers: {} },
+          { apiUrl: 123, method: 'INVALID' } as any,
+        );
+        fail('Expected error');
+      } catch (e) {
+        const err = e as CallerSDKError;
+        expect(err.errors.length).toBeGreaterThanOrEqual(2);
+      }
+
+      expect(mockPost).not.toHaveBeenCalled();
+    });
+
+    it('should pass validation with correct input and config', async () => {
+      mockPost.mockResolvedValue({ data: { status: 200 } });
+
+      await sdk.call(
+        ComponentModule.API_CALL,
+        { headers: {} },
+        { apiUrl: 'https://example.com', method: 'GET' },
+      );
+
+      expect(mockPost).toHaveBeenCalled();
+    });
+
+    it('should pass validation for components with no input or config', async () => {
+      mockPost.mockResolvedValue({
+        data: { ageIdentity: 'test', ageRecipient: 'test' },
+      });
+
+      await sdk.call(ComponentModule.GENERATE_AGE_ENCRYPTION, {});
+
+      expect(mockPost).toHaveBeenCalled();
+    });
+  });
 });

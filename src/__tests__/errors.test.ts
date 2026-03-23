@@ -1,4 +1,5 @@
 import { AxiosError, AxiosHeaders } from 'axios';
+import { z, ZodError } from 'zod';
 import { CallerSDKError } from '@/errors';
 
 function createAxiosError(options: {
@@ -607,6 +608,78 @@ describe('CallerSDKError', () => {
         expect(error.url).toBe('/v2/other/endpoint');
         expect(error.message).toBe('POST /v2/other/endpoint failed with status 404');
       });
+    });
+  });
+
+  describe('fromZodError', () => {
+    function getZodError(schema: z.ZodType, data: unknown): ZodError {
+      const result = schema.safeParse(data);
+      if (result.success) throw new Error('Expected validation to fail');
+      return result.error;
+    }
+
+    it('should create CallerSDKError from ZodError with context', () => {
+      const schema = z.object({ addressIndex: z.number() });
+      const zodError = getZodError(schema, { addressIndex: 'not-a-number' });
+
+      const error = CallerSDKError.fromZodError(zodError, 'GET_EVM_DERIVATION_PATH input');
+
+      expect(error).toBeInstanceOf(CallerSDKError);
+      expect(error.message).toBe('Validation failed for GET_EVM_DERIVATION_PATH input');
+      expect(error.errors).toHaveLength(1);
+      expect(error.errors[0].message).toContain('addressIndex');
+    });
+
+    it('should handle multiple validation issues', () => {
+      const schema = z.object({
+        apiUrl: z.string(),
+        method: z.enum(['POST', 'GET', 'PUT', 'PATCH', 'DELETE']),
+      });
+      const zodError = getZodError(schema, { apiUrl: 123, method: 'INVALID' });
+
+      const error = CallerSDKError.fromZodError(zodError, 'API_CALL config');
+
+      expect(error.errors).toHaveLength(2);
+      expect(error.errors.some((e) => e.message.includes('apiUrl'))).toBe(true);
+      expect(error.errors.some((e) => e.message.includes('method'))).toBe(true);
+    });
+
+    it('should handle nested path in error', () => {
+      const schema = z.object({
+        items: z.array(z.object({ name: z.string() })),
+      });
+      const zodError = getZodError(schema, { items: [{ name: 123 }] });
+
+      const error = CallerSDKError.fromZodError(zodError, 'TEST input');
+
+      expect(error.errors).toHaveLength(1);
+      expect(error.errors[0].message).toContain('items.0.name');
+    });
+
+    it('should handle missing required fields', () => {
+      const schema = z.object({ keyId: z.string() });
+      const zodError = getZodError(schema, {});
+
+      const error = CallerSDKError.fromZodError(zodError);
+
+      expect(error.message).toBe('Validation failed');
+      expect(error.errors).toHaveLength(1);
+      expect(error.errors[0].message).toContain('keyId');
+    });
+
+    it('should have no HTTP-related fields', () => {
+      const schema = z.object({ keyId: z.string() });
+      const zodError = getZodError(schema, {});
+
+      const error = CallerSDKError.fromZodError(zodError);
+
+      expect(error.status).toBeUndefined();
+      expect(error.statusText).toBeUndefined();
+      expect(error.url).toBeUndefined();
+      expect(error.method).toBeUndefined();
+      expect(error.requestBody).toBeUndefined();
+      expect(error.responseBody).toBeUndefined();
+      expect(error.headers).toBeUndefined();
     });
   });
 });
