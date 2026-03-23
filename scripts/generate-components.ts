@@ -205,20 +205,27 @@ function generate() {
     ifaceLines.push('');
   }
 
-  // Generate call interface with method overloads
-  ifaceLines.push('export interface CallableComponents {');
+  // Generate call signature map
+  ifaceLines.push('export interface CallSignatureMap {');
   for (const c of sorted) {
     const name = toPascalCase(c.module);
-    const hasInput = (c.inputs?.parameters || []).length > 0;
-    const hasConfig = Object.keys(c.configs?.properties || {}).length > 0;
-
-    const inputOptional = !hasInput && !hasConfig;
-    const params = [`module: ComponentModule.${c.module}`];
-    params.push(`input${inputOptional ? '?' : ''}: ${name}Input`);
-    params.push(`config${hasConfig ? '' : '?'}: ${name}Config`);
-
-    ifaceLines.push(`  call(${params.join(', ')}): Promise<${name}Output>;`);
+    ifaceLines.push(`  [ComponentModule.${c.module}]: { input: ${name}Input; output: ${name}Output; config: ${name}Config };`);
   }
+  ifaceLines.push('}');
+  ifaceLines.push('');
+
+  // Generate callable interface using generic
+  ifaceLines.push('export interface CallableComponents {');
+  ifaceLines.push('  call<M extends ComponentModule>(');
+  ifaceLines.push('    module: M,');
+  ifaceLines.push('    ...args: CallSignatureMap[M]["input"] extends Record<string, never>');
+  ifaceLines.push('      ? CallSignatureMap[M]["config"] extends Record<string, never>');
+  ifaceLines.push('        ? [input?: CallSignatureMap[M]["input"], config?: CallSignatureMap[M]["config"]]');
+  ifaceLines.push('        : [input: CallSignatureMap[M]["input"], config: CallSignatureMap[M]["config"]]');
+  ifaceLines.push('      : CallSignatureMap[M]["config"] extends Record<string, never>');
+  ifaceLines.push('        ? [input: CallSignatureMap[M]["input"], config?: CallSignatureMap[M]["config"]]');
+  ifaceLines.push('        : [input: CallSignatureMap[M]["input"], config: CallSignatureMap[M]["config"]]');
+  ifaceLines.push('  ): Promise<CallSignatureMap[M]["output"]>;');
   ifaceLines.push('}');
   ifaceLines.push('');
 

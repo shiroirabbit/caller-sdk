@@ -1,11 +1,12 @@
 import { AxiosError } from "axios";
 import { ComponentModule } from "@/generated/enums";
 import { Client } from "./client";
-import { CallableComponents } from "@/generated/components";
 import { CallerSDKError } from "@/errors";
 
-export class CallerSDK extends Client implements CallableComponents {
-    async call(module: ComponentModule, input: unknown, config: unknown = {}) {
+import { CallableComponents } from "@/generated/components";
+
+class CallerSDKImpl extends Client {
+    async call(module: ComponentModule, input: unknown = {}, config: unknown = {}) {
         try {
             const response = await this.client.post(`/v1/sdk/components`, {
                 module,
@@ -25,3 +26,9 @@ export class CallerSDK extends Client implements CallableComponents {
         }
     }
 }
+
+export type CallerSDK = CallableComponents;
+
+export const CallerSDK = CallerSDKImpl as unknown as {
+    new (options: import("@/types").ClientOptions): CallableComponents;
+};
