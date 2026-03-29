@@ -31,6 +31,11 @@ function generate() {
     lines.push(`export const ${exportName} = '${value}' as const;`);
   }
 
+  // Always export BASE_API_URL so consumers can branch on its type
+  if (!publicVars.some(([key]) => key === `${PREFIX}BASE_API_URL`)) {
+    lines.push(`export const BASE_API_URL = undefined;`);
+  }
+
   lines.push('');
 
   fs.mkdirSync(OUT_DIR, { recursive: true });
