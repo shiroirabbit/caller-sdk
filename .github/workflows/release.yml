@@ -33,6 +33,19 @@ jobs:
           npm version "$VERSION" --no-git-tag-version
           echo "Version: $VERSION"
 
+      - name: Determine npm dist-tag
+        id: dist-tag
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+          # Extract pre-release identifier (e.g., "beta" from "1.0.0-beta.1")
+          if [[ "$VERSION" =~ -([a-zA-Z]+) ]]; then
+            echo "tag=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Dist-tag: $(grep tag "$GITHUB_OUTPUT" | cut -d= -f2)"
+
       - name: Create .env from secrets
         run: |
           echo "PUBLIC_BASE_API_URL=${{ secrets.BASE_API_URL }}" > .env
@@ -52,6 +65,6 @@ jobs:
         run: npm run build
 
       - name: Publish to GitHub Packages
-        run: npm publish
+        run: npm publish --tag ${{ steps.dist-tag.outputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
