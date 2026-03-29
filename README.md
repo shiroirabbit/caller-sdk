@@ -16,15 +16,13 @@ npm install caller-sdk
 cp .env.example .env
 ```
 
-2. Edit `.env` with your API key:
+2. Edit `.env` with your values:
 
 ```env
 PUBLIC_BASE_API_URL=http://localhost:3000
-API_KEY=your-api-key-here
 ```
 
 > Variables prefixed with `PUBLIC_` are generated into typed constants (prefix is stripped).
-> Variables without the prefix are only available via `process.env`.
 
 3. Install dependencies and generate files:
 
@@ -123,6 +121,5 @@ npm test
 | Variable | Generated | Description |
 |---|---|---|
 | `PUBLIC_BASE_API_URL` | Yes (as `BASE_API_URL`) | Base URL for the API |
-| `API_KEY` | No | API key for authentication |
 
 > Only `PUBLIC_` prefixed variables are generated into `src/generated/env.ts`. The prefix is stripped from the exported constant name.
