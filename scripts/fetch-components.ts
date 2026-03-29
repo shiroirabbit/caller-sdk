@@ -13,7 +13,11 @@ async function fetchComponents() {
   const baseUrl = process.env.PUBLIC_BASE_API_URL;
 
   if (!baseUrl) {
-    console.error('PUBLIC_BASE_API_URL not found in .env');
+    if (fs.existsSync(OUT_FILE)) {
+      console.log('PUBLIC_BASE_API_URL not set — skipping fetch, using existing components.json');
+      return;
+    }
+    console.error('PUBLIC_BASE_API_URL not found in .env and no existing components.json');
     process.exit(1);
   }
 
