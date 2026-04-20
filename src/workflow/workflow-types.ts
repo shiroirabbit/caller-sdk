@@ -50,10 +50,29 @@ export interface WorkflowRunDetail {
 }
 
 /**
+ * Execution namespace on {@link WorkflowClient} — `workflow.execution.*`
+ */
+export interface WorkflowExecutionNamespace {
+  /**
+   * Fetch the current state of a workflow run including all stage results.
+   *
+   * @param runId - The run UUID returned by {@link WorkflowClient.trigger}.
+   *
+   * @example
+   * const run = await workflow.execution.get(runId);
+   * console.log(run.status, run.totalUsage);
+   * for (const stage of run.runStages) {
+   *   console.log(stage.module, stage.status, stage.output);
+   * }
+   */
+  get(runId: string): Promise<WorkflowRunDetail>;
+}
+
+/**
  * Response returned by {@link WorkflowClient.trigger}.
  */
 export interface TriggerRunResponse {
-  /** UUID identifying the new run — use with `getRun`, `stream`, `waitForRun`. */
+  /** UUID identifying the new run — use with `execution.get`, `stream`, `waitForRun`. */
   runId: string;
   /** Underlying BullMQ job ID. */
   jobId: string;

@@ -4,9 +4,17 @@
   "description": "Caller SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "files": [
     "dist"
   ],
+  "sideEffects": false,
   "scripts": {
     "generate": "npm run generate:env && npm run fetch:components && npm run generate:components",
     "generate:env": "npx tsx scripts/generate-env.ts",

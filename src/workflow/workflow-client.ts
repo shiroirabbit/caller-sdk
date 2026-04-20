@@ -7,6 +7,7 @@ import type {
   RunStreamEvent,
   UpdateComponentRequest,
   ComponentNamespace,
+  WorkflowExecutionNamespace,
 } from './workflow-types';
 
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'FAILED', 'CANCELED']);
@@ -42,7 +43,7 @@ export interface RunStreamHandlers {
  *
  * const workflow = new WorkflowClient({ apiKey: process.env.WR_WORKFLOW_KEY! });
  *
- * // Trigger and stream until done
+ * // Trigger and wait until done
  * const { runId } = await workflow.trigger();
  * const run = await workflow.waitForRun(runId);
  * console.log(run.status, run.totalUsage);
@@ -68,22 +69,20 @@ export class WorkflowClient extends Client {
     }
   }
 
-  /**
-   * Fetch the current state of a run including a full breakdown of every stage.
-   *
-   * @param runId - The run UUID returned by {@link trigger}.
-   */
-  async getRun(runId: string): Promise<WorkflowRunDetail> {
-    try {
-      const response = await this.client.get(`/v1/sdk/workflows/runs/${runId}`, {
-        headers: { 'X-Workflow-Api-Key': this.apiKey },
-      });
-      return response.data as WorkflowRunDetail;
-    } catch (error) {
-      if (error instanceof AxiosError) throw CallerSDKError.fromAxiosError(error);
-      throw error;
-    }
-  }
+  /** @see {@link WorkflowExecutionNamespace} */
+  readonly execution: WorkflowExecutionNamespace = {
+    get: async (runId: string): Promise<WorkflowRunDetail> => {
+      try {
+        const response = await this.client.get(`/v1/sdk/workflows/executions/${runId}`, {
+          headers: { 'X-Workflow-Api-Key': this.apiKey },
+        });
+        return response.data as WorkflowRunDetail;
+      } catch (error) {
+        if (error instanceof AxiosError) throw CallerSDKError.fromAxiosError(error);
+        throw error;
+      }
+    },
+  };
 
   /**
    * Subscribe to live status events for a run via SSE.
@@ -107,7 +106,7 @@ export class WorkflowClient extends Client {
    */
   stream(runId: string, handlers: RunStreamHandlers): RunStreamSubscription {
     const baseUrl = (this.client.defaults.baseURL ?? '').replace(/\/$/, '');
-    const url = `${baseUrl}/v1/sdk/workflows/runs/${runId}/stream`;
+    const url = `${baseUrl}/v1/sdk/workflows/executions/${runId}/stream`;
     const apiKey = this.apiKey;
 
     let controller: AbortController | null = new AbortController();
@@ -195,7 +194,7 @@ export class WorkflowClient extends Client {
           if (!TERMINAL_STATUSES.has(event.status)) return;
           if (timer) clearTimeout(timer);
           // Fetch the final run detail to get stage breakdown
-          this.getRun(runId).then(resolve).catch(reject);
+          this.execution.get(runId).then(resolve).catch(reject);
         },
         onError: (err) => {
           if (timer) clearTimeout(timer);

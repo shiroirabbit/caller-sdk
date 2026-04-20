@@ -9,4 +9,5 @@ export type {
   TriggerRunResponse,
   UpdateComponentRequest,
   ComponentNamespace,
+  WorkflowExecutionNamespace,
 } from './workflow-types';

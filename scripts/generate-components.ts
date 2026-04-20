@@ -243,6 +243,7 @@ function generate() {
     '',
     "import { z } from 'zod';",
     "import { ComponentModule } from './enums';",
+    "import type { CallBuilder } from '../bootstrap/call-builder';",
   ];
 
   // Import all schemas
@@ -290,7 +291,7 @@ function generate() {
   ifaceLines.push('      : CallSignatureMap[M]["config"] extends Record<string, never>');
   ifaceLines.push('        ? [input: CallSignatureMap[M]["input"], config?: CallSignatureMap[M]["config"]]');
   ifaceLines.push('        : [input: CallSignatureMap[M]["input"], config: CallSignatureMap[M]["config"]]');
-  ifaceLines.push('  ): Promise<CallSignatureMap[M]["output"]>;');
+  ifaceLines.push('  ): CallBuilder<CallSignatureMap[M]["output"]>;');
   ifaceLines.push('}');
   ifaceLines.push('');
 

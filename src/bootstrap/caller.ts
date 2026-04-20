@@ -18,7 +18,7 @@ import type {
 // ---------------------------------------------------------------------------
 
 /**
- * Execution namespace on {@link CallerSDK} — `sdk.execution.*`
+ * Execution namespace on {@link WorkspaceClient} — `workspace.execution.*`
  */
 export interface ExecutionNamespace {
   /**
@@ -30,9 +30,9 @@ export interface ExecutionNamespace {
    * @param executionId - UUID returned by `.execute()`.
    *
    * @example
-   * const exec = await sdk.call(ComponentModule.RANDOM_UUID, {}).execute();
+   * const exec = await workspace.call(ComponentModule.RANDOM_UUID, {}).execute();
    * // ... later ...
-   * const latest = await sdk.execution.get(exec.id);
+   * const latest = await workspace.execution.get(exec.id);
    * if (latest.completed) console.log(latest.output);
    */
   get(executionId: string): Promise<ExecuteComponentResponse>;
@@ -49,7 +49,7 @@ export interface ExecutionNamespace {
    * @returns A subscription handle with a `close()` method.
    *
    * @example
-   * const sub = sdk.execution.stream(exec.id, {
+   * const sub = workspace.execution.stream(exec.id, {
    *   onUpdate(event) {
    *     console.log(event.status, event.output);
    *   },
@@ -66,7 +66,7 @@ export interface ExecutionNamespace {
 }
 
 /**
- * Webhook namespace on {@link CallerSDK} — `sdk.webhook.*`
+ * Webhook namespace on {@link WorkspaceClient} — `workspace.webhook.*`
  */
 export interface WebhookNamespace {
   /**
@@ -79,15 +79,15 @@ export interface WebhookNamespace {
    * @param executionId - UUID of the execution whose callback should be retried.
    *
    * @example
-   * await sdk.webhook.redeliver('3f7a1c...');
+   * await workspace.webhook.redeliver('3f7a1c...');
    */
   redeliver(executionId: string): Promise<void>;
 }
 
 /**
- * Namespaced management API available on {@link CallerSDK}.
+ * Namespaced management API available on {@link WorkspaceClient}.
  */
-export interface CallerSDKManagement {
+export interface WorkspaceClientManagement {
   /** Operations on existing executions. */
   execution: ExecutionNamespace;
   /** Webhook delivery operations. */
@@ -97,14 +97,14 @@ export interface CallerSDKManagement {
 /**
  * Core SDK implementation.
  *
- * Consumers interact with this through the {@link CallerSDK} type alias,
+ * Consumers interact with this through the {@link WorkspaceClient} type alias,
  * which presents the fully-typed {@link CallableComponents} interface instead
- * of the raw `CallerSDKImpl` class. This keeps the public API clean and
+ * of the raw `WorkspaceClientImpl` class. This keeps the public API clean and
  * ensures TypeScript infers the correct per-component input/output types.
  *
  * @internal
  */
-class CallerSDKImpl extends Client {
+class WorkspaceClientImpl extends Client {
   /**
    * Prepare a component execution.
    *
@@ -133,7 +133,7 @@ class CallerSDKImpl extends Client {
    *
    * @example
    * // SSE-backed promise (recommended for request/response style)
-   * const { balance } = await sdk
+   * const { balance } = await workspace
    *   .call(ComponentModule.GET_EVM_ACCOUNT_BALANCE, {
    *     jsonRpcUrl: 'https://rpc.ankr.com/eth',
    *     tokenAddress: '0x0000000000000000000000000000000000000000',
@@ -143,7 +143,7 @@ class CallerSDKImpl extends Client {
    *
    * @example
    * // Webhook / fire-and-forget
-   * const exec = await sdk
+   * const exec = await workspace
    *   .call(ComponentModule.BROADCAST_EVM_TRANSACTION, input, config)
    *   .execute({
    *     callbackUrl: 'https://yourserver.com/hook',
@@ -326,7 +326,7 @@ class CallerSDKImpl extends Client {
 }
 
 /**
- * White Rabbit CallerSDK.
+ * White Rabbit WorkspaceClient.
  *
  * Provides a fully-typed client for invoking White Rabbit components and
  * choosing between two result-delivery models:
@@ -343,12 +343,12 @@ class CallerSDKImpl extends Client {
  *
  * ### Quick start
  * ```ts
- * import { CallerSDK, ComponentModule } from 'caller-sdk';
+ * import { WorkspaceClient, ComponentModule } from 'caller-sdk';
  *
- * const sdk = new CallerSDK({ apiKey: 'wrk_…' });
+ * const workspace = new WorkspaceClient({ apiKey: 'wrk_…' });
  *
  * // SSE-backed promise — no polling, no webhooks needed
- * const result = await sdk
+ * const result = await workspace
  *   .call(ComponentModule.GET_EVM_DERIVATION_PATH, { addressIndex: 0 })
  *   .promise();
  *
@@ -360,8 +360,8 @@ class CallerSDKImpl extends Client {
  * create one in the [White Rabbit Dashboard](https://app.whiterabbit.app)
  * under **Settings → API Keys**.
  */
-export type CallerSDK = CallableComponents & CallerSDKManagement;
+export type WorkspaceClient = CallableComponents & WorkspaceClientManagement;
 
-export const CallerSDK = CallerSDKImpl as unknown as {
-  new (options: import('@/types').ClientOptions): CallableComponents & CallerSDKManagement;
+export const WorkspaceClient = WorkspaceClientImpl as unknown as {
+  new (options: import('@/types').ClientOptions): CallableComponents & WorkspaceClientManagement;
 };

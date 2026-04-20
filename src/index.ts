@@ -1,5 +1,5 @@
-export { CallerSDK } from '@/bootstrap';
-export type { CallerSDKManagement, ExecutionNamespace, WebhookNamespace } from '@/bootstrap/caller';
+export { WorkspaceClient } from '@/bootstrap';
+export type { WorkspaceClientManagement, ExecutionNamespace, WebhookNamespace } from '@/bootstrap/caller';
 export { WorkflowClient } from '@/workflow';
 export { CallerSDKError } from '@/errors';
 export { CallBuilder } from '@/bootstrap/call-builder';
@@ -23,6 +23,7 @@ export type {
   TriggerRunResponse,
   UpdateComponentRequest,
   ComponentNamespace,
+  WorkflowExecutionNamespace,
   RunStreamSubscription,
   RunStreamHandlers,
 } from '@/workflow';
