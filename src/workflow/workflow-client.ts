@@ -1,6 +1,10 @@
 import { AxiosError } from 'axios';
-import { Client } from '@/bootstrap/client';
+import axios, { AxiosInstance } from 'axios';
 import { CallerSDKError } from '@/errors';
+import { BASE_API_URL } from '@/generated/env';
+import type {
+  WorkflowClientOptions,
+} from '@/types';
 import type {
   TriggerRunResponse,
   WorkflowRunDetail,
@@ -34,14 +38,19 @@ export interface RunStreamHandlers {
 /**
  * SDK client for workflow run operations.
  *
- * Requires a **Workflow API key** (`wfl_...`) scoped to a single workflow.
- * Get one from **Dashboard → Workflow → Settings → API Key**.
+ * Requires a **Workspace API key** (`ws_...`) and the UUID of the workflow to
+ * trigger. The key must have the target workflow in its `allowedWorkflowIds`
+ * list (or be unrestricted — empty list). Get a key from
+ * **Dashboard → Workspace Settings → API Keys**.
  *
  * @example
  * ```ts
  * import { WorkflowClient } from 'caller-sdk';
  *
- * const workflow = new WorkflowClient({ apiKey: process.env.WR_WORKFLOW_KEY! });
+ * const workflow = new WorkflowClient({
+ *   apiKey: process.env.WR_API_KEY!,
+ *   workflowId: process.env.WR_WORKFLOW_ID!,
+ * });
  *
  * // Trigger and wait until done
  * const { runId } = await workflow.trigger();
@@ -49,7 +58,20 @@ export interface RunStreamHandlers {
  * console.log(run.status, run.totalUsage);
  * ```
  */
-export class WorkflowClient extends Client {
+export class WorkflowClient {
+  protected readonly apiKey: string;
+  protected readonly workflowId: string;
+  protected readonly client: AxiosInstance;
+
+  constructor(options: WorkflowClientOptions) {
+    const { apiKey, workflowId, baseUrl } = options as WorkflowClientOptions & { baseUrl?: string };
+    this.apiKey = apiKey;
+    this.workflowId = workflowId;
+    this.client = axios.create({
+      baseURL: baseUrl ?? BASE_API_URL,
+    });
+  }
+
   /**
    * Trigger a new workflow run.
    *
@@ -58,9 +80,9 @@ export class WorkflowClient extends Client {
   async trigger(): Promise<TriggerRunResponse> {
     try {
       const response = await this.client.post(
-        '/v1/sdk/workflows',
+        `/v1/sdk/workflows/${this.workflowId}`,
         {},
-        { headers: { 'X-Workflow-Api-Key': this.apiKey } },
+        { headers: { 'X-Api-Key': this.apiKey } },
       );
       return response.data as TriggerRunResponse;
     } catch (error) {
@@ -74,7 +96,7 @@ export class WorkflowClient extends Client {
     get: async (runId: string): Promise<WorkflowRunDetail> => {
       try {
         const response = await this.client.get(`/v1/sdk/workflows/executions/${runId}`, {
-          headers: { 'X-Workflow-Api-Key': this.apiKey },
+          headers: { 'X-Api-Key': this.apiKey },
         });
         return response.data as WorkflowRunDetail;
       } catch (error) {
@@ -125,7 +147,7 @@ export class WorkflowClient extends Client {
     (async () => {
       try {
         const response = await fetch(url, {
-          headers: { 'X-Workflow-Api-Key': apiKey },
+          headers: { 'X-Api-Key': apiKey },
           signal: controller?.signal,
         });
 
@@ -214,11 +236,11 @@ export class WorkflowClient extends Client {
     update: async (componentId: string, update: UpdateComponentRequest): Promise<void> => {
       try {
         await this.client.post(
-          `/v1/sdk/workflows/components/${componentId}`,
+          `/v1/sdk/workflows/${this.workflowId}/components/${componentId}`,
           update,
           {
             headers: {
-              'X-Workflow-Api-Key': this.apiKey,
+              'X-Api-Key': this.apiKey,
               'Content-Type': 'application/json',
             },
           },

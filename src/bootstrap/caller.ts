@@ -186,7 +186,7 @@ class WorkspaceClientImpl extends Client {
       try {
         const response = await this.client.get(
           `/v1/sdk/components/executions/${executionId}`,
-          { headers: { 'X-Workspace-Api-Key': this.apiKey } },
+          { headers: { 'X-Api-Key': this.apiKey } },
         );
         return response.data as ExecuteComponentResponse;
       } catch (error) {
@@ -217,7 +217,7 @@ class WorkspaceClientImpl extends Client {
         try {
           const response = await fetch(url, {
             headers: {
-              'X-Workspace-Api-Key': apiKey,
+              'X-Api-Key': apiKey,
               Accept: 'text/event-stream',
               'Cache-Control': 'no-cache',
             },
@@ -280,7 +280,7 @@ class WorkspaceClientImpl extends Client {
         await this.client.post(
           `/v1/sdk/components/executions/${executionId}/replay-callback`,
           {},
-          { headers: { 'X-Workspace-Api-Key': this.apiKey } },
+          { headers: { 'X-Api-Key': this.apiKey } },
         );
       } catch (error) {
         if (error instanceof AxiosError) throw CallerSDKError.fromAxiosError(error);
@@ -313,7 +313,7 @@ class WorkspaceClientImpl extends Client {
 
     try {
       const response = await this.client.post('/v1/sdk/components', body, {
-        headers: { 'X-Workspace-Api-Key': this.apiKey },
+        headers: { 'X-Api-Key': this.apiKey },
       });
       return response.data as ExecuteComponentResponse;
     } catch (error) {

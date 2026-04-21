@@ -7,6 +7,7 @@ export { ComponentModule, ComponentType, ExecutionMode } from '@/generated/enums
 export type { ErrorDetail } from '@/errors';
 export type {
   ClientOptions,
+  WorkflowClientOptions,
   ExecuteOptions,
   PromiseOptions,
   ExecuteComponentResponse,

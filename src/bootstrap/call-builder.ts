@@ -208,7 +208,7 @@ function resolveTerminal<Output>(execution: ExecuteComponentResponse): Output {
  * the connection is torn down, and a `TIMEOUT` `CallerSDKError` is thrown.
  *
  * @param url        - Full SSE endpoint URL.
- * @param apiKey     - Workspace API key forwarded as `X-Workspace-Api-Key`.
+ * @param apiKey     - Workspace API key forwarded as `X-Api-Key`.
  * @param timeoutMs  - Maximum wait time in milliseconds.
  */
 async function waitViaSSE<Output>(
@@ -222,7 +222,7 @@ async function waitViaSSE<Output>(
   try {
     const response = await fetch(url, {
       headers: {
-        'X-Workspace-Api-Key': apiKey,
+        'X-Api-Key': apiKey,
         Accept: 'text/event-stream',
         'Cache-Control': 'no-cache',
       },

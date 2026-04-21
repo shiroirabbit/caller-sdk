@@ -210,7 +210,7 @@ describe('CallerSDK', () => {
           input: { accountIndex: 0, changeIndex: 0, addressIndex: 0 },
           config: {},
         },
-        { headers: { 'X-Workspace-Api-Key': 'test-api-key' } },
+        { headers: { 'X-Api-Key': 'test-api-key' } },
       );
     });
 
@@ -230,7 +230,7 @@ describe('CallerSDK', () => {
           input: {},
           config: {},
         },
-        { headers: { 'X-Workspace-Api-Key': 'test-api-key' } },
+        { headers: { 'X-Api-Key': 'test-api-key' } },
       );
     });
 
@@ -487,7 +487,7 @@ describe('CallerSDK', () => {
         'http://localhost:3000/v1/sdk/components/executions/exec-abc-789/stream',
         expect.objectContaining({
           headers: expect.objectContaining({
-            'X-Workspace-Api-Key': 'test-api-key',
+            'X-Api-Key': 'test-api-key',
             Accept: 'text/event-stream',
           }),
         }),

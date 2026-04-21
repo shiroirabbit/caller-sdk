@@ -4,6 +4,11 @@ interface BaseClientOptions {
   readonly apiKey: string;
 }
 
+interface BaseWorkflowClientOptions extends BaseClientOptions {
+  /** The workflow UUID this client is scoped to. */
+  readonly workflowId: string;
+}
+
 /**
  * Constructor options for {@link CallerSDK}.
  *
@@ -23,6 +28,19 @@ interface BaseClientOptions {
 export type ClientOptions = typeof BASE_API_URL extends string
   ? BaseClientOptions & { readonly baseUrl?: string }
   : BaseClientOptions & { readonly baseUrl: string };
+
+/**
+ * Constructor options for {@link WorkflowClient}.
+ *
+ * @example
+ * const workflow = new WorkflowClient({
+ *   apiKey: 'ws_…',
+ *   workflowId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+ * });
+ */
+export type WorkflowClientOptions = typeof BASE_API_URL extends string
+  ? BaseWorkflowClientOptions & { readonly baseUrl?: string }
+  : BaseWorkflowClientOptions & { readonly baseUrl: string };
 
 // ---------------------------------------------------------------------------
 // Execution options
